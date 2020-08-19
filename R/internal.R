@@ -3,12 +3,14 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("i", "obj"))
 
 #' @importFrom "aws.s3" "put_object" "bucket_exists"
+#' @importFrom "aws.ec2metadata" "is_ec2"
 #' @importFrom "utils" "write.csv"
 #' @importFrom "purrr" "map2"
 #' @importFrom "progress" "progress_bar"
-uploadToS3 = function(data, bucket, split_files, key, secret, session, region){
+uploadToS3 = function(data, bucket, split_files, region){
+  is_ec2()
   prefix=paste0(sample(rep(letters, 10),50),collapse = "")
-  if(!bucket_exists(bucket, key=key, secret=secret, session=session, region=region)){
+  if(!bucket_exists(bucket, region=region)){
     stop("Bucket does not exist")
   }
 
@@ -43,9 +45,10 @@ uploadToS3 = function(data, bucket, split_files, key, secret, session, region){
 }
 
 #' @importFrom "aws.s3" "delete_object"
+#' @importFrom "aws.ec2metadata" "is_ec2"
 #' @importFrom "purrr" "map"
-deletePrefix = function(prefix, bucket, split_files, key, secret, session, region){
-
+deletePrefix = function(prefix, bucket, split_files, region){
+  is_ec2()
   s3Names=paste(prefix, ".", formatC(1:split_files, width = 4, format = "d", flag = "0"), sep="")
 
   message(paste("Deleting", split_files, "files with prefix", prefix, "from bucket", bucket))
@@ -97,22 +100,13 @@ splitDetermine = function(dbcon, numRows, rowSize){
 }
 
 
-s3ToRedshift = function(dbcon, table_name, bucket, prefix, region, access_key, secret_key, session, iam_role_arn, additional_params){
+s3ToRedshift = function(dbcon, table_name, bucket, prefix, region, iam_role_arn, additional_params){
     stageTable=paste0(sample(letters,16),collapse = "")
     # Create temporary table for staging data
     queryStmt(dbcon, sprintf("create temp table %s (like %s)", stageTable, table_name))
     copyStr = "copy %s from 's3://%s/%s.' region '%s' csv gzip ignoreheader 1 emptyasnull COMPUPDATE FALSE STATUPDATE FALSE %s %s"
     # Use IAM Role if available
-    if (nchar(iam_role_arn) > 0) {
-      credsStr = sprintf("iam_role '%s'", iam_role_arn)
-    } else {
-      # creds string now includes a token in case it is needed.
-        if (session != '') {
-          credsStr = sprintf("credentials 'aws_access_key_id=%s;aws_secret_access_key=%s;token=%s'", access_key, secret_key, session)
-        } else {
-          credsStr = sprintf("credentials 'aws_access_key_id=%s;aws_secret_access_key=%s'", access_key, secret_key)
-        }
-    }
+    credsStr = sprintf("iam_role '%s'", iam_role_arn)
     statement = sprintf(copyStr, stageTable, bucket, prefix, region, additional_params, credsStr)
     queryStmt(dbcon, statement)
 

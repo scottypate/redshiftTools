@@ -9,9 +9,6 @@
 #' @param split_files optional parameter to specify amount of files to split into. If not specified will look at amount of slices in Redshift to determine an optimal amount.
 #' @param bucket the name of the temporary bucket to load the data. Will look for AWS_BUCKET_NAME on environment if not specified.
 #' @param region the region of the bucket. Will look for AWS_DEFAULT_REGION on environment if not specified.
-#' @param access_key the access key with permissions for the bucket. Will look for AWS_ACCESS_KEY_ID on environment if not specified.
-#' @param secret_key the secret key with permissions fot the bucket. Will look for AWS_SECRET_ACCESS_KEY on environment if not specified.
-#' @param session_token the session key with permissions for the bucket, this will be used instead of the access/secret keys if specified. Will look for AWS_SESSION_TOKEN on environment if not specified.
 #' @param iam_role_arn an iam role arn with permissions fot the bucket. Will look for AWS_IAM_ROLE_ARN on environment if not specified. This is ignoring access_key and secret_key if set.
 #' @param wlm_slots amount of WLM slots to use for this bulk load http://docs.aws.amazon.com/redshift/latest/dg/tutorial-configuring-workload-management.html
 #' @param additional_params Additional params to send to the COPY statement in Redshift
@@ -38,9 +35,6 @@ rs_append_table = function(
     split_files,
     bucket=Sys.getenv('AWS_BUCKET_NAME'),
     region=Sys.getenv('AWS_DEFAULT_REGION'),
-    access_key=Sys.getenv('AWS_ACCESS_KEY_ID'),
-    secret_key=Sys.getenv('AWS_SECRET_ACCESS_KEY'),
-    session_token=Sys.getenv('AWS_SESSION_TOKEN'),
     iam_role_arn=Sys.getenv('AWS_IAM_ROLE_ARN'),
     wlm_slots=1,
     additional_params=''
@@ -77,7 +71,7 @@ rs_append_table = function(
   }
 
   result = tryCatch({
-      stageTable=s3ToRedshift(dbcon, table_name, bucket, prefix, region, access_key, secret_key, session_token, iam_role_arn, additional_params)
+      stageTable=s3ToRedshift(dbcon, table_name, bucket, prefix, region, iam_role_arn, additional_params)
 
       # Use a single transaction
       queryStmt(dbcon, 'begin')
@@ -98,7 +92,7 @@ rs_append_table = function(
       return(FALSE)
   }, finally = {
     message("Deleting temporary files from S3 bucket")
-    deletePrefix(prefix, bucket, split_files, access_key, secret_key, session_token, region)
+    deletePrefix(prefix, bucket, split_files, region)
   })
 
   return (result)
