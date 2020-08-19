@@ -28,7 +28,7 @@ uploadToS3 = function(data, bucket, key, split_files, region){
     s3Name=paste(bucket, "/", prefix, ".", formatC(i, width = 4, format = "d", flag = "0"), sep="")
     write.csv(part, gzfile(tmpFile, encoding="UTF-8"), na='', row.names=F, quote=T)
 
-    r=put_object(file = tmpFile, object = s3Name, bucket = "", region=region)
+    r=put_object(file = tmpFile, object = s3Name, bucket = "", key=key, region=region)
     pb$tick()
     return(r)
   }
@@ -47,7 +47,7 @@ uploadToS3 = function(data, bucket, key, split_files, region){
 #' @importFrom "aws.s3" "delete_object"
 #' @importFrom "aws.ec2metadata" "is_ec2"
 #' @importFrom "purrr" "map"
-deletePrefix = function(prefix, bucket, key, split_files, region){
+deletePrefix = function(prefix, bucket, split_files, key, region){
   is_ec2()
   s3Names=paste(prefix, ".", formatC(1:split_files, width = 4, format = "d", flag = "0"), sep="")
 
