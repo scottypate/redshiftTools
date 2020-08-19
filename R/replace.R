@@ -64,7 +64,7 @@ rs_replace_table = function(
   split_files = pmin(split_files, numRows)
 
   # Upload data to S3
-  prefix = uploadToS3(df=df, bucket=bucket, split_files=split_files, region=region)
+  prefix = uploadToS3(data=df, bucket=bucket, split_files=split_files, region=region)
 
   if(wlm_slots>1){
     queryStmt(dbcon,paste0("set wlm_query_slot_count to ", wlm_slots));
