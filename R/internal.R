@@ -7,6 +7,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("i", "obj"))
 #' @importFrom "utils" "write.csv"
 #' @importFrom "purrr" "map2"
 #' @importFrom "progress" "progress_bar"
+#' @export
 uploadToS3 = function(data, bucket, split_files, region){
   is_ec2()
   prefix=paste0(sample(rep(letters, 10),50),collapse = "")
@@ -27,8 +28,7 @@ uploadToS3 = function(data, bucket, split_files, region){
     s3Name=paste(bucket, "/", prefix, ".", formatC(i, width = 4, format = "d", flag = "0"), sep="")
     write.csv(part, gzfile(tmpFile, encoding="UTF-8"), na='', row.names=F, quote=T)
 
-    r=put_object(file = tmpFile, object = s3Name, bucket = "", key=key, secret=secret,
-        session=session, region=region)
+    r=put_object(file = tmpFile, object = s3Name, bucket = "", region=region)
     pb$tick()
     return(r)
   }
@@ -57,7 +57,7 @@ deletePrefix = function(prefix, bucket, split_files, region){
   pb$tick(0)
 
   deleteObj = function(obj){
-    delete_object(obj, bucket, key=key, secret=secret, session=session, region=region)
+    delete_object(obj, bucket, key=key, region=region)
     pb$tick()
   }
 

@@ -9,6 +9,7 @@ Depends:
 Imports:
     DBI,
     aws.s3,
+    aws.ec2metadata,
     purrr,
     progress
 Suggests:
