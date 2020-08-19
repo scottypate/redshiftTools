@@ -8,10 +8,10 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("i", "obj"))
 #' @importFrom "purrr" "map2"
 #' @importFrom "progress" "progress_bar"
 #' @export
-uploadToS3 = function(data, bucket, key, split_files, region){
+uploadToS3 = function(data, bucket, split_files, region){
   is_ec2()
   prefix=paste0(sample(rep(letters, 10),50),collapse = "")
-  if(!bucket_exists(bucket, key=key, region=region)){
+  if(!bucket_exists(bucket, region=region)){
     stop("Bucket does not exist")
   }
 
@@ -28,7 +28,7 @@ uploadToS3 = function(data, bucket, key, split_files, region){
     s3Name=paste(bucket, "/", prefix, ".", formatC(i, width = 4, format = "d", flag = "0"), sep="")
     write.csv(part, gzfile(tmpFile, encoding="UTF-8"), na='', row.names=F, quote=T)
 
-    r=put_object(file = tmpFile, object = s3Name, bucket = "", key=key, region=region)
+    r=put_object(file = tmpFile, object = s3Name, bucket = "", region=region)
     pb$tick()
     return(r)
   }
@@ -47,7 +47,7 @@ uploadToS3 = function(data, bucket, key, split_files, region){
 #' @importFrom "aws.s3" "delete_object"
 #' @importFrom "aws.ec2metadata" "is_ec2"
 #' @importFrom "purrr" "map"
-deletePrefix = function(prefix, bucket, split_files, key, region){
+deletePrefix = function(prefix, bucket, split_files, region){
   is_ec2()
   s3Names=paste(prefix, ".", formatC(1:split_files, width = 4, format = "d", flag = "0"), sep="")
 
@@ -57,7 +57,7 @@ deletePrefix = function(prefix, bucket, split_files, key, region){
   pb$tick(0)
 
   deleteObj = function(obj){
-    delete_object(obj, bucket, key=key, region=region)
+    delete_object(obj, bucket, region=region)
     pb$tick()
   }
 
