@@ -8,10 +8,10 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("i", "obj"))
 #' @importFrom "purrr" "map2"
 #' @importFrom "progress" "progress_bar"
 #' @export
-uploadToS3 = function(data, bucket, split_files, region){
+uploadToS3 = function(data, bucket, key, split_files, region){
   is_ec2()
   prefix=paste0(sample(rep(letters, 10),50),collapse = "")
-  if(!bucket_exists(bucket, region=region)){
+  if(!bucket_exists(bucket, key=key, region=region)){
     stop("Bucket does not exist")
   }
 
@@ -47,7 +47,7 @@ uploadToS3 = function(data, bucket, split_files, region){
 #' @importFrom "aws.s3" "delete_object"
 #' @importFrom "aws.ec2metadata" "is_ec2"
 #' @importFrom "purrr" "map"
-deletePrefix = function(prefix, bucket, split_files, region){
+deletePrefix = function(prefix, bucket, key, split_files, region){
   is_ec2()
   s3Names=paste(prefix, ".", formatC(1:split_files, width = 4, format = "d", flag = "0"), sep="")
 
