@@ -1,4 +1,4 @@
-Package: redshiftTools
+Package: redshiftToolsTest
 Type: Package
 Title: Amazon Redshift Tools
 Version: 1.0.1.900
