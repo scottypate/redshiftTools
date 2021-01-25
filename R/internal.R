@@ -101,9 +101,9 @@ splitDetermine = function(dbcon, numRows, rowSize){
 
 
 s3ToRedshift = function(dbcon, table_name, bucket, prefix, region, iam_role_arn, additional_params){
-    stageTable=paste0("scotty_",paste(sample(letters,16),collapse = ""))
+    stageTable=paste0(sample(letters,16),collapse = "")
     # Create temporary table for staging data
-    queryStmt(dbcon, sprintf("create table %s (like %s)", stageTable, table_name))
+    queryStmt(dbcon, sprintf("create temp table %s (like %s)", stageTable, table_name))
     copyStr = "copy %s from 's3://%s/%s.' region '%s' csv gzip ignoreheader 1 emptyasnull COMPUPDATE FALSE STATUPDATE FALSE %s %s"
     # Use IAM Role if available
     credsStr = sprintf("iam_role '%s'", iam_role_arn)
