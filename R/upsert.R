@@ -83,10 +83,9 @@ rs_upsert_table = function(
 
 
     if(!missing(keys)){
-      # where stage.key = table.key and...
-      keysCond = paste(stageTable,".",keys, "=", table_name,".",keys, sep="")
+      keysCond = paste(table_name,".",keys, " IN (SELECT ",keys," FROM ", stageTable, " GROUP BY 1)", sep="")
       keysWhere = sub(" and $", "", paste0(keysCond, collapse="", sep=" and "))
-
+      message(paste('delete from', table_name, 'where', keysWhere))
       queryStmt(dbcon, sprintf('delete from %s using %s where %s',
               table_name,
               stageTable,
